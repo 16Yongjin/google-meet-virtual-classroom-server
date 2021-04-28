@@ -51,7 +51,12 @@ io.on('connection', function (socket) {
     socket.userData.y = data.y
     socket.userData.z = data.z
     socket.userData.heading = data.h
-    ;(socket.userData.pb = data.pb), (socket.userData.action = data.action)
+    socket.userData.pb = data.pb
+    socket.userData.action = data.action
+  })
+
+  socket.on('updateData', ({ player, models }) => {
+    socket.userData = { ...socket.userData, ...player, models }
   })
 
   socket.on('chat message', function (data) {
@@ -69,11 +74,12 @@ http.listen(2002, function () {
 
 setInterval(function () {
   const nsp = io.of('/')
-  let pack = []
+  const players = []
+  const models = []
 
   nsp.sockets.forEach((socket, id) => {
     if (socket.userData.model !== undefined) {
-      pack.push({
+      players.push({
         id: socket.id,
         model: socket.userData.model,
         colour: socket.userData.colour,
@@ -84,8 +90,10 @@ setInterval(function () {
         pb: socket.userData.pb,
         action: socket.userData.action,
       })
+
+      models.push(...(Object.values(socket.userData.models || {})))
     }
   })
 
-  if (pack.length > 0) io.emit('remoteData', pack)
+  if (players.length > 0) io.emit('remoteData', { players, models })
 }, 40)
