@@ -19,6 +19,12 @@
 
 프로젝트 디렉터리에서 `yarn install` 커맨드 실행
 
+## 환경 변수 설정
+
+1. `.env.example` 파일을 복사해서 `.env` 파일로 저장
+
+2. https://sketchfab.com/settings/password 에 있는 API Token을 `SKETCHFAB_API_KEY`에 복붙하기
+
 ### 앱 실행
 
 프로젝트 디렉터리에서 `yarn start` 커맨드 실행
