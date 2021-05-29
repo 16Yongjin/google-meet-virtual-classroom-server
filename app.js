@@ -30,41 +30,18 @@ io.on('connection', function (socket) {
   console.log(`${socket.id} connected`)
   socket.emit('setId', { id: socket.id })
 
-  socket.on('disconnect', function () {
-    socket.broadcast.emit('deletePlayer', { id: socket.id })
-  })
-
   socket.on('init', function (data) {
     console.log(`socket.init ${data.model}`)
-    socket.userData.model = data.model
-    socket.userData.colour = data.colour
-    socket.userData.x = data.x
-    socket.userData.y = data.y
-    socket.userData.z = data.z
-    socket.userData.heading = data.h
-    socket.userData.pb = data.pb
+    socket.userData = { ...socket.userData, ...data }
     socket.userData.action = 'CharacterArmature|Idle'
   })
 
   socket.on('update', function (data) {
-    socket.userData.x = data.x
-    socket.userData.y = data.y
-    socket.userData.z = data.z
-    socket.userData.heading = data.h
-    socket.userData.pb = data.pb
-    socket.userData.action = data.action
+    socket.userData = { ...socket.userData, ...data }
   })
 
   socket.on('updateData', ({ player, models }) => {
     socket.userData = { ...socket.userData, ...player, models }
-  })
-
-  socket.on('chat message', function (data) {
-    console.log(`chat message:${data.id} ${data.message}`)
-    io.to(data.id).emit('chat message', {
-      id: socket.id,
-      message: data.message,
-    })
   })
 })
 
@@ -77,21 +54,11 @@ setInterval(function () {
   const players = []
   const models = []
 
-  nsp.sockets.forEach((socket, id) => {
-    if (socket.userData.model !== undefined) {
-      players.push({
-        id: socket.id,
-        model: socket.userData.model,
-        colour: socket.userData.colour,
-        x: socket.userData.x,
-        y: socket.userData.y,
-        z: socket.userData.z,
-        heading: socket.userData.heading,
-        pb: socket.userData.pb,
-        action: socket.userData.action,
-      })
-
-      models.push(...(Object.values(socket.userData.models || {})))
+  nsp.sockets.forEach((socket) => {
+    if (socket.userData.model) {
+      const { models: userModels, ...userData } = socket.userData
+      players.push({ id: socket.id, ...userData })
+      models.push(...Object.values(userModels || {}))
     }
   })
 
